@@ -1,7 +1,9 @@
 # FarCry2-Schteve
-PowerShell based automation for Far Cry 2 modding.
+[WIP] PowerShell based automation for Far Cry 2 modding.
 
-# Usage
+# S.C.H.T.E.V.E.
+
+**SC**ripted  **H**elper **T**ool for (FC2) D**EVE**lopers
 
 Below is a video showcasing usage of version 1.0.0.
 
