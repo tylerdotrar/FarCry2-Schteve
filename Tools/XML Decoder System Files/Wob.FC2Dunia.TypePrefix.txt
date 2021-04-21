@@ -1,0 +1,21 @@
+# This is a comment. Any line starting with # is ignored.
+# This file is used to define the name prefixes that hint at what their data types are.
+# See the readme for formatting details and data types
+arch	String
+b	Bool
+f	Float
+i	Int
+is	Bool
+m_	Float
+matimp	Hash
+n	UInt
+#s	String  -  sometimes a hash
+sel	UInt32
+snd	String
+sndtp	Int
+sndml	Hash
+str	String
+v	Vector
+vec	Vector
+vector	Vector
+ent	Int64
