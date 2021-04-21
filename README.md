@@ -1,5 +1,5 @@
 # FarCry2-Schteve
-[WIP] PowerShell based automation for Far Cry 2 modding.
+PowerShell based automation for Far Cry 2 modding.
 
 # S.C.H.T.E.V.E.
 
@@ -17,12 +17,14 @@ Above is a an outdated video showcasing usage of version 1.0.0.
 
 # Usage
 
+Supports both PowerShell (desktop) and PowerShell Core.
+
 Relative paths are all irrelevant; the `Tools` directory and `FC2.Schteve.ps1` can be place wherever desired, completely
 unrelated.  The only pre-requisite is that you don't modify the names of the directories / files contained within `Tools`
 or the folders created by *initializing* the sandbox.
 
-The Sandbox is the base directory where everything happens; that's where files are output, converted, decoded, packed, etc.  
-Once you input your desired Sandbox, remember to `initialize` -- this will create the directories used.
+The Sandbox is the base directory where everything happens; that's where files are output, converted, decoded, packed, etc.  Once 
+you input your desired Sandbox, remember to **initialize** -- this will create the directories used.
 
 When setting up your three main directories, don't add a slash (`\`) at the end of the input directory.
 
@@ -31,11 +33,17 @@ Menu and directory structure are color coated:
 - **White** = Filepath exists / Menu option fully available
 - **White (with Red Asterisk)** = Base filepath exists, but at least one important derivative filepath does not.
 
-## Get-Help
-![Get-Help](https://cdn.discordapp.com/attachments/620986290317426698/833519682916581416/unknown.png)
+## Get-Help (PS Core)
+![Get-Help](https://cdn.discordapp.com/attachments/620986290317426698/834313313797406750/unknown.png)
 
-## Mass Unpacking
-![Unpack](https://cdn.discordapp.com/attachments/620986290317426698/833549667895345192/unknown.png)
+## Mass Unpacking (PS Desktop)
+![Unpack](https://cdn.discordapp.com/attachments/620986290317426698/834317841737580554/unknown.png)
+
+## Options (PS Desktop)
+![Options](https://cdn.discordapp.com/attachments/620986290317426698/834312774695256104/unknown.png)
+
+# Windows Terminal (PS Core)
+![Windows-Terminal](https://cdn.discordapp.com/attachments/620986290317426698/834311463148585006/unknown.png)
 
 # Disclaimer
 Included with this repo are fragments of tools that were not created by me -- some slightly modified, others untouched.
