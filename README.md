@@ -42,7 +42,7 @@ Menu and directory structure are color coated:
 ## Options (PS Desktop)
 ![Options](https://cdn.discordapp.com/attachments/620986290317426698/834312774695256104/unknown.png)
 
-# Windows Terminal (PS Core)
+## Windows Terminal (PS Core)
 ![Windows-Terminal](https://cdn.discordapp.com/attachments/620986290317426698/834311463148585006/unknown.png)
 
 # Disclaimer
@@ -54,17 +54,17 @@ I did not include them to claim credit from the original creators' hard work; th
 
 Binaries used: `Gibbed.Dunia.Pack.exe, Gibbed.Dunia.Unpack.exe, Gibbed.Dunia.ConvertBinary.exe, Gibbed.Dunia.ConvertXml.exe` 
  
-[Original Repository](https://github.com/gibbed/Gibbed.Dunia)
+ ---> [Original Repository](https://github.com/gibbed/Gibbed.Dunia)
 
-[Tweaked Variant I Downloaded](https://www.moddb.com/downloads/start/190103)
+ ---> [Tweaked Variant I Downloaded](https://www.moddb.com/downloads/start/190103)
 
 - **xbt2dds** -- slightly modified to `FC2.xbt2dds.exe`; cleaned up some code, changed terminal output and binary details, added burger icon, recompiled, etc.
 Maintains original functionality, minus slight terminal syntax change:
 
 *Syntax:* `FC2.xbt2dds.exe -io C:\Input.xbt C:\OutputFolder`
 
-[Original Repository](https://github.com/cra0kalo/xbt2dds)
+ ---> [Original Repository](https://github.com/cra0kalo/xbt2dds)
 
 - **FarCry2 XML Decoder** -- changed batch file to internal Schteve functionality; not sure who the original creator is.
 
-[Download I Used](https://www.moddb.com/downloads/start/195283)
+ ---> [Download I Used](https://www.moddb.com/downloads/start/195283)
