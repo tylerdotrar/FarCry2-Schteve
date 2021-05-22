@@ -1,7 +1,7 @@
 ﻿function Schteve {
 #.SYNOPSIS
 # PowerShell based automation for Far Cry 2 modding.
-# ARBITRARY VERSION NUMBER:  2.1.0
+# ARBITRARY VERSION NUMBER:  2.4.1
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
@@ -12,12 +12,12 @@
 #
 #     [start]    Launches 'FarCry2.exe' for quicker testing.
 #
-#     [unpack]   Unpacks Far Cry 2's 'patch.dat', 'common.dat', 'worlds.dat', 'dlc1.dat',
-#                and 'dlc_jungle.dat' files and moves them into your specified sandbox 
+#     [unpack]   Recursively unpacks all '.dat' files located in Far Cry 2's '\Data_Win32'
+#                folder, then moves the unpacked content to the Sandbox's '\[] Raw Files'
 #                directory.
 #
-#     [pack]     Re-packs the '\patch_unpack' folder in your sandbox directory and moves 
-#                the output back into Far Cry 2's '\Data_Win32' directory.
+#     [pack]     Re-packs the '\patch_unpack' folder in the Sandbox and moves the output 
+#                ('patch.dat'/'patch.fat) back into Far Cry 2's '\Data_Win32' directory.
 #      
 #     [convert]  Converts '.xbt' texture files to and from '.dds'/'.schteve' files for
 #                easier texture editing.
@@ -39,17 +39,17 @@
     # Window Modification
     $OriginalWindow = $Host.UI.RawUI.WindowTitle
     $OriginalColor  = $Host.UI.RawUI.BackgroundColor
-    $Host.UI.RawUI.WindowTitle     = "SCHTEVE ── FarCry2 Modding Utility (v2.1.0)"
+    $Host.UI.RawUI.WindowTitle     = "SCHTEVE ── FarCry2 Modding Utility (v2.4.1)"
     $Host.UI.RawUI.BackgroundColor = "Black"
 
 
     ### Base Directories ###
-    $script:FarCry2Folder  = "C:\Program Files (x86)\Steam\steamapps\common\Far Cry 2"
-    $script:SandboxFolder  = "C:\Example\Sandbox"
-    $script:ToolsFolder    = "C:\Example\Tools"
+    $script:FarCry2Folder  = "X:\Example\Far Cry 2"
+    $script:SandboxFolder  = "X:\Example\Far Cry 2\Modding\Sandbox"
+    $script:ToolsFolder    = "X:\Example\Far Cry 2\Modding\Tools"
 
 
-    ### Derivative Paths ###
+    ## Derivative Paths ##
 
     # Derivs 1
     $script:FarCry2exe     = "$script:FarCry2Folder\bin\FarCry2.exe"
@@ -72,7 +72,7 @@
 
 
     # Boolean Arrays Used for Directory Validation
-    $script:InvalidDerivs1 = @($FALSE, $FALSE, $FALSE)
+    $script:InvalidDerivs1 = @($FALSE, $FALSE)
     $script:InvalidDerivs2 = @($FALSE, $FALSE, $FALSE, $FALSE, $FALSE)
     $script:InvalidDerivs3 = @($FALSE, $FALSE, $FALSE, $FALSE, $FALSE, $FALSE)
 
@@ -134,13 +134,13 @@
 
 
         # Verify Existence of Base Folders
-        $InvalidDirectory1   = Verify-BaseFolders -BaseItem $script:FarCry2Folder
-        $InvalidDirectory2   = Verify-BaseFolders -BaseItem $script:SandboxFolder
-        $InvalidDirectory3   = Verify-BaseFolders -BaseItem $script:ToolsFolder
+        $InvalidDirectory1     = Verify-BaseFolders -BaseItem $script:FarCry2Folder
+        $InvalidDirectory2     = Verify-BaseFolders -BaseItem $script:SandboxFolder
+        $InvalidDirectory3     = Verify-BaseFolders -BaseItem $script:ToolsFolder
 
-        $DerivativeArray1 = @($script:FarCry2exe, $script:FarCry2Win32)
-        $DerivativeArray2 = @($script:UnpackOutput, $script:XbtTextures, $script:DdsTextures, $script:XmlDecoding, $script:PatchUnpack)
-        $DerivativeArray3 = @($script:PackExe, $script:UnpackExe, $script:BinaryExe, $script:XmlExe, $script:DecoderExe, $script:ConverterExe)
+        $DerivativeArray1      = @($script:FarCry2exe, $script:FarCry2Win32)
+        $DerivativeArray2      = @($script:UnpackOutput, $script:XbtTextures, $script:DdsTextures, $script:XmlDecoding, $script:PatchUnpack)
+        $DerivativeArray3      = @($script:PackExe, $script:UnpackExe, $script:BinaryExe, $script:XmlExe, $script:DecoderExe, $script:ConverterExe)
 
         # Verify Existence of Derivative Folders / Files
         $script:InvalidDerivs1 = Verify-Derivatives -DerivArray $DerivativeArray1 -BooleanArray $script:InvalidDerivs1
@@ -149,12 +149,12 @@
 
 
         # Metric Shit Ton of Arrays for Less Repetition (Messages, Base Folders, Derivative Folders, Base Booleans, Derivative Booleans)
-        $BaseMessages     = @('   Far Cry 2     ','   Sandbox       ','   Tools         ')
-        $BaseDirectories  = @($script:FarCry2Folder, $script:SandboxFolder, $script:ToolsFolder)
-        $BaseBoolArray    = @($InvalidDirectory1, $InvalidDirectory2, $InvalidDirectory3)
+        $BaseMessages          = @('   Far Cry 2     ','   Sandbox       ','   Tools         ')
+        $BaseDirectories       = @($script:FarCry2Folder, $script:SandboxFolder, $script:ToolsFolder)
+        $BaseBoolArray         = @($InvalidDirectory1, $InvalidDirectory2, $InvalidDirectory3)
 
-        $DerivativeArrArr = @( @($DerivativeArray1), @($DerivativeArray2), @($DerivativeArray3) )
-        $DerivBoolArrArr  = @( @($script:InvalidDerivs1), @($script:InvalidDerivs2), @($script:InvalidDerivs3) )
+        $DerivativeArrArr      = @( @($DerivativeArray1), @($DerivativeArray2), @($DerivativeArray3) )
+        $DerivBoolArrArr       = @( @($script:InvalidDerivs1), @($script:InvalidDerivs2), @($script:InvalidDerivs3) )
 
 
         # Output Directory Listing
@@ -239,6 +239,38 @@
             Start-Sleep -Seconds 2
 
 
+            # Convert Language '.rml' Files to Readable '.xml' Format
+            Write-Host "`n   [CONVERTING...]" -ForegroundColor Yellow
+            
+            foreach ($LanguageDir in (Get-ChildItem -LiteralPath $script:FarCry2Win32 -Recurse -Directory 'languages')) {
+
+                Get-ChildItem -LiteralPath $LanguageDir -Recurse -Name '*.rml' | % { 
+                    
+                    $LangFilePath = "$LanguageDir\$_"
+
+                    . $script:XmlExe "$LangFilePath"
+                    Remove-Item -LiteralPath "$LangFilePath" -Force
+                    Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $LangFilePath.Replace("$script:FarCry2Win32","").ToUpper()
+                }
+            }
+            Start-Sleep -Seconds 2
+
+
+            # Convert 'entitylibrary.fcb' and 'entitylibrarypatchoverride.fcb' Archives
+            $FcbFiles = $NULL
+
+            Get-ChildItem -LiteralPath $script:FarCry2Win32 -Recurse -Include 'entitylibrary.fcb' | % { $FcbFiles += @($_.FullName) }
+            Get-ChildItem -LiteralPath $script:FarCry2Win32 -Recurse -Include 'entitylibrarypatchoverride.fcb' | % { $FcbFiles += @($_.FullName) }
+
+            foreach ($FcbFile in $FcbFiles) {
+                    
+                . $script:BinaryExe $FcbFile | Out-Null
+                Remove-Item -LiteralPath $FcbFile -Force
+                Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $FcbFile.Replace("$script:FarCry2Win32","").ToUpper()
+            }
+            Start-Sleep -Seconds 2
+            
+
             # Move Game Files to Unpacked Directory
             Write-Host "`n   [MOVING...]" -ForegroundColor Yellow
 
@@ -302,12 +334,34 @@
             $PatchFatOut = "$script:FarCry2Win32\patch.fat"
 
 
-            # Error Correction
-            if ( !(Test-Path -LiteralPath $script:PatchUnpack) ) {
-                Write-Host "`n 'patch_unpack' not found! Aborting." -ForegroundColor Red
-                Start-Sleep -Seconds 2
-                break
+            # Convert '.xml' Files back to '.rml' Format
+            Write-Host "`n   [CONVERTING...]" -ForegroundColor Yellow
+
+            foreach ($XmlFile in (Get-ChildItem -LiteralPath "$script:PatchUnpack\languages" -Recurse -Name '*.xml')) {
+                   
+                $InputXml =  "$script:PatchUnpack\languages\$XmlFile"
+                $OutputRml = $InputXml.Replace('_converted.xml','.rml')
+
+                . $script:XmlExe $InputXml $OutputRml
+                Remove-Item -LiteralPath "$InputXml" -Force
+                Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $XmlFile.ToUpper()
             }
+            Start-Sleep -Seconds 2
+
+            # Convert 'entitylibrary.xml'/'entitylibrarypatchoverride.xml' Archives back to '.fcb' Format
+            foreach ($FcbArchiveXml in (Get-ChildItem -LiteralPath $script:PatchUnpack -Recurse -Include 'entitylibrary*.xml')) {
+                
+                Write-Host "Debug: $FcbArchiveXml" -f Magenta
+
+                . $script:BinaryExe $FcbArchiveXml.FullName | Out-Null
+                Write-host "Done converting." -f Magenta
+
+                Remove-Item -LiteralPath $FcbArchiveXml.FullName -Force
+                write-host 
+                Remove-Item -LiteralPath ($FcbArchiveXml.FullName).Replace(".xml","") -Force -Recurse
+                Write-Host "   - " -NoNewline -ForegroundColor Yellow ; ($FcbArchiveXml.FullName).Replace("$script:PatchUnpack","").ToUpper()
+            }
+            Start-Sleep -Seconds 2
 
 
             # Pack Game Files
@@ -329,9 +383,27 @@
             Start-Sleep -Seconds 2
 
 
+            ## UNDO ##
+
+            # Convert Language '.rml' Files back to '.xml'
+            foreach ($RmlFile in (Get-ChildItem -LiteralPath "$script:PatchUnpack\languages" -Recurse -Name '*.rml')) {
+                    
+                . $script:XmlExe "$script:PatchUnpack\languages\$RmlFile"
+                Remove-Item -LiteralPath "$script:PatchUnpack\languages\$RmlFile" -Force
+            }
+
+            # Convert 'entitylibrary.fcb' and 'entitylibrarypatchoverride.fcb' Archives
+            foreach ($FcbFile in (Get-ChildItem -LiteralPath $script:PatchUnpack -Recurse -Include 'entitylibrary*.fcb')) {
+                    
+                . $script:BinaryExe $FcbFile.FullName | Out-Null
+                Remove-Item -LiteralPath $FcbFile.FullName -Force
+            }
+
+
             Write-Host "`n   [DONE]" -ForegroundColor Green
             Start-Sleep -Seconds 3
         }
+
 
         # Error Correction if Files Didn't Output Correctly
         catch {
@@ -554,11 +626,24 @@
             if ($UserInput1 -eq "") { $UserInput1 = $script:FarCry2Folder }
             if ($UserInput2 -eq "") { $UserInput2 = $script:SandboxFolder }
             if ($UserInput3 -eq "") { $UserInput3 = $script:ToolsFolder }
-    
+            
 
             # Modify Directory Values and Replace Script (Set-Content used for Proper .ps1 Encoding)
-            $FinalContent = (Get-Content -Literalpath "$PSScriptRoot\FC2.Schteve.ps1").Replace("$script:FarCry2Folder","$UserInput1").Replace("$script:SandboxFolder","$UserInput2").Replace("$script:ToolsFolder","$UserInput3")
+            #$FinalContent = (Get-Content -Literalpath "$PSScriptRoot\FC2.Schteve.ps1").Replace("'$script:FarCry2Folder'","'$UserInput1'").Replace("'$script:SandboxFolder'","'$UserInput2'").Replace("'$script:ToolsFolder'","'$UserInput3'")
             
+            $BaseFile = Get-Content -Literalpath "$PSScriptRoot\FC2.Schteve.ps1"
+
+            $FC2Line     = $BaseFile[46]
+            $SandboxLine = $BaseFile[47]
+            $ToolsLine   = $BaseFile[48]
+
+            $FixedFC2Line     = $BaseFile[46].Replace("$script:FarCry2Folder","$UserInput1")
+            $FixedSandboxLine = $BaseFile[47].Replace("$script:SandboxFolder","$UserInput2")
+            $FixedToolsLine   = $BaseFile[48].Replace("$script:ToolsFolder","$UserInput3")
+
+            $FinalContent = $BaseFile.Replace($FC2Line,$FixedFC2Line).Replace($SandboxLine,$FixedSandboxLine).Replace($ToolsLine,$FixedToolsLine)
+
+
             # (ADDED CORE SUPPORT)
             if ($PSEdition -eq 'Core') { Set-Content -Encoding UTF8BOM -LiteralPath "$PSScriptRoot\FC2.Schteve.ps1" -Value $FinalContent }
             else { Set-Content -Encoding UTF8 -LiteralPath "$PSScriptRoot\FC2.Schteve.ps1" -Value $FinalContent }
