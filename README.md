@@ -3,7 +3,7 @@ PowerShell based automation for Far Cry 2 modding.
 
 # S.C.H.T.E.V.E.
 
-[Here](https://www.youtube.com/watch?v=XNWWkdPptlg) is an outdated video showcasing usage of version 1.0.0.
+[Here](https://youtu.be/Z3FQxDj7SIk) is a video showcasing the usage of `FC2.Schteve.ps1` version 2.4.5.
 
 **This video displays:**
 - Mass unpacking Far Cry 2 `.dat`/`.fat` files.
