@@ -3,13 +3,9 @@ PowerShell based automation for Far Cry 2 modding.
 
 # S.C.H.T.E.V.E.
 
-`SC`ripted  `H`elper `T`ool for (FC2) D`EVE`lopers
+[Here](https://www.youtube.com/watch?v=XNWWkdPptlg) is an outdated video showcasing usage of version 1.0.0.
 
-[![Schteve Usage](http://img.youtube.com/vi/XNWWkdPptlg/0.jpg)](https://www.youtube.com/watch?v=XNWWkdPptlg)
-
-Above is a an outdated video showcasing usage of version 1.0.0.
-
-**This Video Displays:**
+**This video displays:**
 - Mass unpacking Far Cry 2 `.dat`/`.fat` files.
 - Replacing Far Cry 2 watermark with one of the watermarks from my [Far Cry 2: Modernized](https://www.nexusmods.com/farcry2/mods/308) mod.
 - Re-packing `patch_unpack` and moving the output files into the original folder Far Cry 2 directory (`Data_Win32`)
