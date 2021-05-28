@@ -1,7 +1,7 @@
 ﻿function Schteve {
 #.SYNOPSIS
 # PowerShell based automation for Far Cry 2 modding.
-# ARBITRARY VERSION NUMBER:  2.4.1
+# ARBITRARY VERSION NUMBER:  2.4.3
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
@@ -33,13 +33,12 @@
 #
 #.LINK
 # https://github.com/tylerdotrar/FarCry2-Schteve
-# https://nexusmods.com/farcry2/mods/308
     
 
     # Window Modification
     $OriginalWindow = $Host.UI.RawUI.WindowTitle
     $OriginalColor  = $Host.UI.RawUI.BackgroundColor
-    $Host.UI.RawUI.WindowTitle     = "SCHTEVE ── FarCry2 Modding Utility (v2.4.1)"
+    $Host.UI.RawUI.WindowTitle     = "SCHTEVE ── FarCry2 Modding Utility (v2.4.3)"
     $Host.UI.RawUI.BackgroundColor = "Black"
 
 
@@ -232,7 +231,6 @@
             foreach ($DatFile in $DatFiles) {
 
                 $BaseName = ($DatFile).Split('\')[-1]
-
                 . $script:UnpackExe "$script:FarCry2Win32\$DatFile"
                 Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $BaseName.ToUpper()
             }
@@ -247,7 +245,6 @@
                 Get-ChildItem -LiteralPath $LanguageDir -Recurse -Name '*.rml' | % { 
                     
                     $LangFilePath = "$LanguageDir\$_"
-
                     . $script:XmlExe "$LangFilePath"
                     Remove-Item -LiteralPath "$LangFilePath" -Force
                     Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $LangFilePath.Replace("$script:FarCry2Win32","").ToUpper()
@@ -350,14 +347,10 @@
 
             # Convert 'entitylibrary.xml'/'entitylibrarypatchoverride.xml' Archives back to '.fcb' Format
             foreach ($FcbArchiveXml in (Get-ChildItem -LiteralPath $script:PatchUnpack -Recurse -Include 'entitylibrary*.xml')) {
-                
-                Write-Host "Debug: $FcbArchiveXml" -f Magenta
 
                 . $script:BinaryExe $FcbArchiveXml.FullName | Out-Null
                 Write-host "Done converting." -f Magenta
-
                 Remove-Item -LiteralPath $FcbArchiveXml.FullName -Force
-                write-host 
                 Remove-Item -LiteralPath ($FcbArchiveXml.FullName).Replace(".xml","") -Force -Recurse
                 Write-Host "   - " -NoNewline -ForegroundColor Yellow ; ($FcbArchiveXml.FullName).Replace("$script:PatchUnpack","").ToUpper()
             }
@@ -367,17 +360,14 @@
             # Pack Game Files
             Write-Host "`n   [PACKING...]" -ForegroundColor Yellow
             . $script:PackExe $script:PatchUnpack
-
             Write-Host "   - " -NoNewline -ForegroundColor Yellow ; 'PATCH_UNPACK'
             Start-Sleep -Seconds 2
 
 
             # Move Game Files to FC2's '.\Data_Win32' directory
             Write-Host "`n   [MOVING...]" -ForegroundColor Yellow
-
             Move-Item -LiteralPath "$PatchDatIn" "$PatchDatOut" -Force -ErrorAction Stop
             Write-Host "   - " -NoNewline -ForegroundColor Yellow ; 'PATCH.DAT'
-
             Move-Item -LiteralPath "$PatchFatIn" "$PatchFatOut" -Force -ErrorAction Stop
             Write-Host "   - " -NoNewline -ForegroundColor Yellow ; 'PATCH.FAT'
             Start-Sleep -Seconds 2
@@ -399,7 +389,6 @@
                 Remove-Item -LiteralPath $FcbFile.FullName -Force
             }
 
-
             Write-Host "`n   [DONE]" -ForegroundColor Green
             Start-Sleep -Seconds 3
         }
@@ -407,7 +396,6 @@
 
         # Error Correction if Files Didn't Output Correctly
         catch {
-
             Write-Host "`n   File(s) not found! Aborting." -ForegroundColor Red
             Start-Sleep -Seconds 2
         }
@@ -445,7 +433,6 @@
                 
                 $SchteveFile = $XbtFile.Replace('.xbt','.schteve')
                 $DdsFile     = $XbtFile.Replace('.xbt','.dds')
-
                 $XbtFilePath = "$script:XbtTextures\$XbtFile"
                 $SchteveOutput = "$script:DdsTextures\" + $SchteveFile
 
@@ -454,13 +441,10 @@
                 else { $FileBytes   = (Get-Content -LiteralPath $XbtFilePath -Encoding Byte -First 50) -Join ' ' }
 
                 $XbtHeader   = ($FileBytes -Split ' 68 68 83')[0] -Split ' '
-
                 [System.IO.File]::WriteAllBytes($SchteveOutput,$XbtHeader)
                 
-
                 # Convert .xbt Files to .dds Files
                 . $script:ConverterExe -io $XbtFilePath $script:DdsTextures | Out-Null
-
                 Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $DdsFile.ToUpper()
                 Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $SchteveFile.ToUpper()
             }
@@ -468,7 +452,6 @@
 
             Write-host "`n   [DONE]" -ForegroundColor Green
             Start-Sleep -Seconds 3
-
         }
         function DDS-to-XBT {
             
@@ -494,10 +477,8 @@
             for ($Index = 0; $Index -lt $DdsFiles.Count; $Index++) {
             
                 $DdsFile         = $DdsFiles[$Index]
-
                 $XbtFile         = $DdsFile.Replace('.dds','.xbt')
                 $XbtOutput       = "$script:XbtTextures\" + $XbtFile
-
                 $DdsFilePath     = "$script:DdsTextures\" + $DdsFile
                 $SchteveFilePath = $DdsFilePath.Replace('.dds','.schteve')
 
@@ -507,12 +488,10 @@
                 
                     $FileHead    = [System.IO.File]::ReadAllBytes($SchteveFilePath)
                     $FileBase    = [System.IO.File]::ReadAllBytes($DdsFilePath)
-
                     $FileContent = $FileHead + $FileBase
 
                     # Output Recreated .xbt File
                     [System.IO.File]::WriteAllBytes($XbtOutput,$FileContent)
-
                     Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $XbtFile.ToUpper()
                 }
                 catch {
@@ -594,7 +573,6 @@
         foreach ($XmlFile in $XmlFiles) {
             
             $LastWrite = (Get-Item -LiteralPath "$script:XmlDecoding\$XmlFile").LastWriteTime
-
             if ($CompletionTime -lt $LastWrite) { Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $XmlFile.ToUpper() }
             else { Write-Host "   - " -NoNewline -ForegroundColor Yellow ; Write-Host $XmlFile.ToUpper() -ForegroundColor Red }
         }
@@ -622,15 +600,11 @@
             Write-Host "`n Input new 'Sandbox' directory:`n   |" -NoNewline -ForegroundColor Yellow ;   $UserInput2 = Read-Host
             Write-Host "`n Input new 'Tools' directory:`n   |" -NoNewline -ForegroundColor Yellow ;     $UserInput3 = Read-Host
 
-
             if ($UserInput1 -eq "") { $UserInput1 = $script:FarCry2Folder }
             if ($UserInput2 -eq "") { $UserInput2 = $script:SandboxFolder }
             if ($UserInput3 -eq "") { $UserInput3 = $script:ToolsFolder }
-            
 
             # Modify Directory Values and Replace Script (Set-Content used for Proper .ps1 Encoding)
-            #$FinalContent = (Get-Content -Literalpath "$PSScriptRoot\FC2.Schteve.ps1").Replace("'$script:FarCry2Folder'","'$UserInput1'").Replace("'$script:SandboxFolder'","'$UserInput2'").Replace("'$script:ToolsFolder'","'$UserInput3'")
-            
             $BaseFile = Get-Content -Literalpath "$PSScriptRoot\FC2.Schteve.ps1"
 
             $FC2Line     = $BaseFile[46]
@@ -642,7 +616,6 @@
             $FixedToolsLine   = $BaseFile[48].Replace("$script:ToolsFolder","$UserInput3")
 
             $FinalContent = $BaseFile.Replace($FC2Line,$FixedFC2Line).Replace($SandboxLine,$FixedSandboxLine).Replace($ToolsLine,$FixedToolsLine)
-
 
             # (ADDED CORE SUPPORT)
             if ($PSEdition -eq 'Core') { Set-Content -Encoding UTF8BOM -LiteralPath "$PSScriptRoot\FC2.Schteve.ps1" -Value $FinalContent }
