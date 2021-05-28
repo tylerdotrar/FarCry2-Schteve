@@ -1,7 +1,7 @@
 ﻿function Schteve {
 #.SYNOPSIS
 # PowerShell based automation for Far Cry 2 modding.
-# ARBITRARY VERSION NUMBER:  2.4.3
+# ARBITRARY VERSION NUMBER:  2.4.5
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
@@ -38,14 +38,14 @@
     # Window Modification
     $OriginalWindow = $Host.UI.RawUI.WindowTitle
     $OriginalColor  = $Host.UI.RawUI.BackgroundColor
-    $Host.UI.RawUI.WindowTitle     = "SCHTEVE ── FarCry2 Modding Utility (v2.4.3)"
+    $Host.UI.RawUI.WindowTitle     = "SCHTEVE ── FarCry2 Modding Utility (v2.4.5)"
     $Host.UI.RawUI.BackgroundColor = "Black"
 
 
     ### Base Directories ###
-    $script:FarCry2Folder  = "X:\Example\Far Cry 2"
-    $script:SandboxFolder  = "X:\Example\Far Cry 2\Modding\Sandbox"
-    $script:ToolsFolder    = "X:\Example\Far Cry 2\Modding\Tools"
+    $script:FarCry2Folder  = "C:\Example\Far Cry 2"
+    $script:SandboxFolder  = "C:\Example\Far Cry 2\Modding\Sandbox"
+    $script:ToolsFolder    = "C:\Example\Far Cry 2\Modding\Tools"
 
 
     ## Derivative Paths ##
@@ -607,15 +607,16 @@
             # Modify Directory Values and Replace Script (Set-Content used for Proper .ps1 Encoding)
             $BaseFile = Get-Content -Literalpath "$PSScriptRoot\FC2.Schteve.ps1"
 
-            $FC2Line     = $BaseFile[46]
-            $SandboxLine = $BaseFile[47]
-            $ToolsLine   = $BaseFile[48]
+            $FC2Line     = $BaseFile[45]
+            $SandboxLine = $BaseFile[46]
+            $ToolsLine   = $BaseFile[47]
 
-            $FixedFC2Line     = $BaseFile[46].Replace("$script:FarCry2Folder","$UserInput1")
-            $FixedSandboxLine = $BaseFile[47].Replace("$script:SandboxFolder","$UserInput2")
-            $FixedToolsLine   = $BaseFile[48].Replace("$script:ToolsFolder","$UserInput3")
+            $FixedFC2Line     = $FC2Line.Replace("$script:FarCry2Folder","$UserInput1")
+            $FixedSandboxLine = $SandboxLine.Replace("$script:SandboxFolder","$UserInput2")
+            $FixedToolsLine   = $ToolsLine.Replace("$script:ToolsFolder","$UserInput3")
 
             $FinalContent = $BaseFile.Replace($FC2Line,$FixedFC2Line).Replace($SandboxLine,$FixedSandboxLine).Replace($ToolsLine,$FixedToolsLine)
+
 
             # (ADDED CORE SUPPORT)
             if ($PSEdition -eq 'Core') { Set-Content -Encoding UTF8BOM -LiteralPath "$PSScriptRoot\FC2.Schteve.ps1" -Value $FinalContent }
