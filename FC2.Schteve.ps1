@@ -1,7 +1,7 @@
 ﻿function Schteve {
 #.SYNOPSIS
 # PowerShell based automation for Far Cry 2 modding.
-# ARBITRARY VERSION NUMBER:  2.4.5
+# ARBITRARY VERSION NUMBER:  2.4.6
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
@@ -38,7 +38,7 @@
     # Window Modification
     $OriginalWindow = $Host.UI.RawUI.WindowTitle
     $OriginalColor  = $Host.UI.RawUI.BackgroundColor
-    $Host.UI.RawUI.WindowTitle     = "SCHTEVE ── FarCry2 Modding Utility (v2.4.5)"
+    $Host.UI.RawUI.WindowTitle     = "SCHTEVE ── FarCry2 Modding Utility (v2.4.6)"
     $Host.UI.RawUI.BackgroundColor = "Black"
 
 
@@ -349,7 +349,6 @@
             foreach ($FcbArchiveXml in (Get-ChildItem -LiteralPath $script:PatchUnpack -Recurse -Include 'entitylibrary*.xml')) {
 
                 . $script:BinaryExe $FcbArchiveXml.FullName | Out-Null
-                Write-host "Done converting." -f Magenta
                 Remove-Item -LiteralPath $FcbArchiveXml.FullName -Force
                 Remove-Item -LiteralPath ($FcbArchiveXml.FullName).Replace(".xml","") -Force -Recurse
                 Write-Host "   - " -NoNewline -ForegroundColor Yellow ; ($FcbArchiveXml.FullName).Replace("$script:PatchUnpack","").ToUpper()
