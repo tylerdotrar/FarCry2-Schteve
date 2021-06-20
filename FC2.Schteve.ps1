@@ -1,7 +1,7 @@
 ﻿function Schteve {
 #.SYNOPSIS
 # PowerShell based automation for Far Cry 2 modding.
-# ARBITRARY VERSION NUMBER:  2.4.6
+# ARBITRARY VERSION NUMBER:  2.5.1
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
@@ -36,19 +36,19 @@
     
 
     # Window Modification
-    $OriginalWindow = $Host.UI.RawUI.WindowTitle
-    $OriginalColor  = $Host.UI.RawUI.BackgroundColor
-    $Host.UI.RawUI.WindowTitle     = "SCHTEVE ── FarCry2 Modding Utility (v2.4.6)"
+    $OriginalWindow                = $Host.UI.RawUI.WindowTitle
+    $OriginalColor                 = $Host.UI.RawUI.BackgroundColor
+    $Host.UI.RawUI.WindowTitle     = "SCHTEVE ── FarCry2 Modding Utility (v2.5.1)"
     $Host.UI.RawUI.BackgroundColor = "Black"
 
 
     ### Base Directories ###
-    $script:FarCry2Folder  = "C:\Example\Far Cry 2"
-    $script:SandboxFolder  = "C:\Example\Far Cry 2\Modding\Sandbox"
-    $script:ToolsFolder    = "C:\Example\Far Cry 2\Modding\Tools"
+    $script:FarCry2Folder <#RegexTag1#> = "C:\Example\Far Cry 2"
+    $script:SandboxFolder <#RegexTag2#> = "C:\Example\Far Cry 2\Modding\Sandbox"
+    $script:ToolsFolder   <#RegexTag3#> = "C:\Example\Far Cry 2\Modding\Tools"
 
 
-    ## Derivative Paths ##
+    ### Derivative Paths ###
 
     # Derivs 1
     $script:FarCry2exe     = "$script:FarCry2Folder\bin\FarCry2.exe"
@@ -76,7 +76,7 @@
     $script:InvalidDerivs3 = @($FALSE, $FALSE, $FALSE, $FALSE, $FALSE, $FALSE)
 
 
-    # Header, Directory Listings, and Path Validation
+    # Header, Directory Listings, Path Validation, and Menu Listings
     function Banner ([switch]$FunctionCheck) {
         
         function Verify-BaseFolders   ([string]$BaseItem) {
@@ -112,7 +112,7 @@
         }
 
 
-        Write-Host " ─────────────────────────────────────────── 
+        Write-Host "
     ──╔═══╗╔═══╗╔╗ ╔╦════╦═══╦╗  ╔╦═══╗──    
    ───║╔═╗║║╔═╗║║║ ║║╔╗╔╗║╔══╣╚╗╔╝║╔══╝───   
   ────║╚══╗║║ ╚╝║╚═╝╠╝║║╚╣╚══╬╗║║╔╣╚══╗────  
@@ -170,6 +170,24 @@
             if ($FunctionCheck) { Display-Derivatives -BaseItem $BaseDirectories[$Index] -DerivArray $DerivativeArrArr[$Index] }
         }
     }
+    function List-MenuOption ([string]$Command,[string]$Message,[array]$Dependencies) {
+
+        $Spacing = " " * (7 - $Command.Length)
+
+        Write-Host "   [" -NoNewline
+        Write-Host "$Command$Spacing" -ForegroundColor Red -NoNewline
+        Write-Host "]       " -NoNewline
+ 
+        foreach ($Dependency in $Dependencies) {
+            if ($Dependency -eq $TRUE) { $MissingDependency = $TRUE }
+        }
+
+        if ($MissingDependency) { Write-Host $Message -ForegroundColor Red }
+        else { Write-Host $Message }
+    }
+    function Generic-Error {
+        Write-Host "`n   Invalid input." -ForegroundColor Red ; Start-Sleep -Seconds 1
+    }
 
     # Script Options
     function Start-GameInstance {
@@ -185,13 +203,15 @@
         # Visual Formatting
         Clear-Host
         Banner
-        Write-host "`n`n [" -NoNewline ; Write-Host "start" -NoNewline -ForegroundColor Red ; Write-Host "]"
+
+        Write-Host "`n`n Function List:" -ForegroundColor Yellow
+        List-MenuOption -Command "start"
 
 
         # Launch Game
-        Write-Host "`n   [LAUNCHING]" -ForegroundColor Green
+        Write-Host "`n`n   [LAUNCHING]" -ForegroundColor Green
         . $script:FarCry2exe
-        Start-Sleep -Seconds 3
+        Start-Sleep -Seconds 5
     }
     function Unpack-GameFiles {
    
@@ -216,23 +236,30 @@
         # Visual Formatting
         Clear-Host
         Banner
-        Write-host "`n`n [" -NoNewline ; Write-Host "unpack" -NoNewline -ForegroundColor Red ; Write-Host "]"
+        
+        Write-Host "`n`n Function List:" -ForegroundColor Yellow
+        List-MenuOption -Command "unpack"
         
 
         # Find all '.dat' Files to Unpack
         Get-ChildItem -LiteralPath $script:FarCry2Win32 -Recurse -Name "*.dat" | % { $DatFiles += @($_) }
 
-
         try {
 
             # Unpack Game Files
-            Write-Host "`n   [UNPACKING...]" -ForegroundColor Yellow
+            Write-Host "`n`n   [UNPACKING...]" -ForegroundColor Yellow
 
             foreach ($DatFile in $DatFiles) {
 
-                $BaseName = ($DatFile).Split('\')[-1]
-                . $script:UnpackExe "$script:FarCry2Win32\$DatFile"
-                Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $BaseName.ToUpper()
+                $BaseName    = ($DatFile).Split('\')[-1]
+                $DatFullName = "$script:FarCry2Win32\$DatFile"
+                . $script:UnpackExe $DatFullName
+
+                Write-Host "   - " -NoNewline -ForegroundColor Yellow
+                if (Test-Path -LiteralPath $DatFullName.Replace('.dat','_unpack')) {
+                    $BaseName.ToUpper()
+                }
+                else { Write-Host $BaseName.ToUpper() -ForegroundColor Red }
             }
             Start-Sleep -Seconds 2
 
@@ -240,14 +267,20 @@
             # Convert Language '.rml' Files to Readable '.xml' Format
             Write-Host "`n   [CONVERTING...]" -ForegroundColor Yellow
             
-            foreach ($LanguageDir in (Get-ChildItem -LiteralPath $script:FarCry2Win32 -Recurse -Directory 'languages')) {
+            foreach ($LanguageDir in (Get-ChildItem -LiteralPath $script:FarCry2Win32 -Recurse -Directory 'languages').FullName) {
 
                 Get-ChildItem -LiteralPath $LanguageDir -Recurse -Name '*.rml' | % { 
                     
                     $LangFilePath = "$LanguageDir\$_"
                     . $script:XmlExe "$LangFilePath"
                     Remove-Item -LiteralPath "$LangFilePath" -Force
-                    Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $LangFilePath.Replace("$script:FarCry2Win32","").ToUpper()
+                    Start-Sleep -Milliseconds 125
+
+                    Write-Host "   - " -NoNewline -ForegroundColor Yellow
+                    if (Test-Path -LiteralPath $LangFilePath.Replace('.rml','_converted.xml')) {
+                         $LangFilePath.Replace("$script:FarCry2Win32","").ToUpper()
+                    }
+                    else { Write-Host $LangFilePath.Replace("$script:FarCry2Win32","").ToUpper() -ForegroundColor Red }
                 }
             }
             Start-Sleep -Seconds 2
@@ -256,8 +289,8 @@
             # Convert 'entitylibrary.fcb' and 'entitylibrarypatchoverride.fcb' Archives
             $FcbFiles = $NULL
 
-            Get-ChildItem -LiteralPath $script:FarCry2Win32 -Recurse -Include 'entitylibrary.fcb' | % { $FcbFiles += @($_.FullName) }
-            Get-ChildItem -LiteralPath $script:FarCry2Win32 -Recurse -Include 'entitylibrarypatchoverride.fcb' | % { $FcbFiles += @($_.FullName) }
+            Get-ChildItem -LiteralPath $script:FarCry2Win32 -Recurse -Filter 'entitylibrary.fcb' | % { $FcbFiles += @($_.FullName) }
+            Get-ChildItem -LiteralPath $script:FarCry2Win32 -Recurse -Filter 'entitylibrarypatchoverride.fcb' | % { $FcbFiles += @($_.FullName) }
 
             foreach ($FcbFile in $FcbFiles) {
                     
@@ -278,9 +311,14 @@
                 $OutputName = "$script:UnpackOutput\$UnpackName"
 
 
-                if ($UnpackName -eq 'PATCH_UNPACK') { Move-Item -LiteralPath $InputName "$script:SandboxFolder\$UnpackName" -Force -ErrorAction Stop }
-                else { Move-Item -LiteralPath $InputName $OutputName -Force -ErrorAction Stop }
-                Write-Host "   - " -NoNewline -ForegroundColor Yellow ; $UnpackName.ToUpper()
+                if ($UnpackName -eq 'PATCH_UNPACK') { Move-Item -LiteralPath $InputName "$script:SandboxFolder\$UnpackName" -Force -ErrorAction SilentlyContinue }
+                else { Move-Item -LiteralPath $InputName $OutputName -Force -ErrorAction SilentlyContinue }
+
+                Write-Host "   - " -NoNewline -ForegroundColor Yellow ;
+                if (Test-Path -LiteralPath $OutputName) {
+                    $UnpackName.ToUpper()
+                }
+                else { Write-Host $UnpackName.ToUpper() }
             }
             Start-Sleep -Seconds 2
 
@@ -319,8 +357,9 @@
         # Visual Formatting
         Clear-Host
         Banner
-        Write-host "`n`n [" -NoNewline ; Write-Host "pack" -NoNewline -ForegroundColor Red ; Write-Host "]"
-
+        
+        Write-Host "`n`n Function List:" -ForegroundColor Yellow
+        List-MenuOption -Command "pack"
 
         try {
     
@@ -332,7 +371,7 @@
 
 
             # Convert '.xml' Files back to '.rml' Format
-            Write-Host "`n   [CONVERTING...]" -ForegroundColor Yellow
+            Write-Host "`n`n   [CONVERTING...]" -ForegroundColor Yellow
 
             foreach ($XmlFile in (Get-ChildItem -LiteralPath "$script:PatchUnpack\languages" -Recurse -Name '*.xml')) {
                    
@@ -346,7 +385,7 @@
             Start-Sleep -Seconds 2
 
             # Convert 'entitylibrary.xml'/'entitylibrarypatchoverride.xml' Archives back to '.fcb' Format
-            foreach ($FcbArchiveXml in (Get-ChildItem -LiteralPath $script:PatchUnpack -Recurse -Include 'entitylibrary*.xml')) {
+            foreach ($FcbArchiveXml in (Get-ChildItem -LiteralPath $script:PatchUnpack -Recurse -Filter 'entitylibrary*.xml')) {
 
                 . $script:BinaryExe $FcbArchiveXml.FullName | Out-Null
                 Remove-Item -LiteralPath $FcbArchiveXml.FullName -Force
@@ -382,10 +421,10 @@
             }
 
             # Convert 'entitylibrary.fcb' and 'entitylibrarypatchoverride.fcb' Archives
-            foreach ($FcbFile in (Get-ChildItem -LiteralPath $script:PatchUnpack -Recurse -Include 'entitylibrary*.fcb')) {
+            foreach ($FcbFile in (Get-ChildItem -LiteralPath $script:PatchUnpack -Recurse -Filter 'entitylibrary*.fcb').FullName) {
                     
-                . $script:BinaryExe $FcbFile.FullName | Out-Null
-                Remove-Item -LiteralPath $FcbFile.FullName -Force
+                . $script:BinaryExe $FcbFile | Out-Null
+                Remove-Item -LiteralPath $FcbFile -Force
             }
 
             Write-Host "`n   [DONE]" -ForegroundColor Green
@@ -422,11 +461,14 @@
             # Visual Formatting
             Clear-Host
             Banner
-            Write-host "`n`n [" -NoNewline ; Write-Host "convert" -NoNewline -ForegroundColor Red ; Write-Host "]"
-            Write-host "`n [" -NoNewline ; Write-Host "one" -NoNewline -ForegroundColor Red ; Write-Host "]"
+            
+            Write-Host "`n`n Function List:" -ForegroundColor Yellow
+            List-MenuOption -Command "convert"
 
+            Write-Host "`n`n Select Conversion:" -ForegroundColor Yellow
+            List-MenuOption -Command "one"
 
-            Write-Host "`n   [CONVERTING TO DDS...]" -ForegroundColor Yellow
+            Write-Host "`n`n   [CONVERTING TO DDS...]" -ForegroundColor Yellow
 
             foreach ($XbtFile in $XbtFiles) { 
                 
@@ -467,11 +509,14 @@
             # Visual Formatting
             Clear-Host
             Banner
-            Write-host "`n`n [" -NoNewline ; Write-Host "convert" -NoNewline -ForegroundColor Red ; Write-Host "]"
-            Write-host "`n [" -NoNewline ; Write-Host "one" -NoNewline -ForegroundColor Red ; Write-Host "]"
 
-        
-            Write-Host "`n   [CONVERTING TO XBT...]" -ForegroundColor Yellow
+            Write-Host "`n`n Function List:" -ForegroundColor Yellow
+            List-MenuOption -Command "convert"
+
+            Write-Host "`n`n Select Conversion:" -ForegroundColor Yellow
+            List-MenuOption -Command "two"
+      
+            Write-Host "`n`n   [CONVERTING TO XBT...]" -ForegroundColor Yellow
 
             for ($Index = 0; $Index -lt $DdsFiles.Count; $Index++) {
             
@@ -508,7 +553,7 @@
         if ($script:InvalidDerivs2[1] -or $script:InvalidDerivs2[2]) {
             Write-Host "`n   Sandbox not initialized! Aborting." -ForegroundColor Red
             Start-Sleep -Seconds 2
-            break 
+            break
         }
 
 
@@ -517,23 +562,25 @@
         
             Clear-Host
             Banner
-            Write-host "`n`n [" -NoNewline ; Write-Host "convert" -NoNewline -ForegroundColor Red ; Write-Host "]"
+
+            Write-Host "`n`n Function List:" -ForegroundColor Yellow
+            List-MenuOption -Command "convert"
 
             Write-Host "`n`n Select Conversion:" -ForegroundColor Yellow
-            Write-host "   [" -NoNewline ; Write-Host "one" -NoNewline -ForegroundColor Red ; Write-Host "]         XBT-to-DDS"
-            Write-host "   [" -NoNewline ; Write-Host "two" -NoNewline -ForegroundColor Red ; Write-Host "]         DDS-to-XBT"
-            Write-host "   [" -NoNewline ; Write-Host "back" -NoNewline -ForegroundColor Red ; Write-Host "]        Back to Main Menu"
+            List-MenuOption -Command "one" -Message "XBT-to-DDS"
+            List-MenuOption -Command "two" -Message "DDS-to-XBT"
+            List-MenuOption -Command "back" -Message "Back to Main Menu"
 
+            # User Input
             Write-Host "`n`n Selection:`n   |" -NoNewline -ForegroundColor Yellow; $ConversionInput = Read-Host
         
             switch ( $ConversionInput.ToUpper() ) {
-           
-                "ONE"   { XBT-to-DDS }
-                "TWO"   { DDS-to-XBT }
+                default { Generic-Error }
+                "ONE"   { XBT-to-DDS    }
+                "TWO"   { DDS-to-XBT    }
                 "BACK"  { $MiniMenu = $FALSE }
                 "EXIT"  { $MiniMenu = $FALSE ; $script:MainMenu = $FALSE }
-                default { Write-Host "`n   Invalid input." -ForegroundColor Red ; Start-Sleep -Seconds 2 }
-            } 
+            }
         }
     }
     function XML-Decoding {
@@ -554,12 +601,14 @@
         # Visual Formatting
         Clear-Host
         Banner
-        Write-host "`n`n [" -NoNewline ; Write-Host "decode" -NoNewline -ForegroundColor Red ; Write-Host "]"
+
+        Write-Host "`n`n Function List:" -ForegroundColor Yellow
+        List-MenuOption -Command "decode"
 
         
         # Visual Formatting for Consistency
         Get-ChildItem -LiteralPath $script:XmlDecoding -Name "*.xml" | % { $XmlFiles += @($_) }
-        Write-Host "`n   [DECODING...]" -ForegroundColor Yellow
+        Write-Host "`n`n   [DECODING...]" -ForegroundColor Yellow
 
 
         # Only Line doing Actual Decoding
@@ -584,48 +633,132 @@
         
         # Internal Options Functions
         function Modify-Folders {
+            
+            function Missing-Directory {
+                Write-Host "`n Directory does not exist." -ForegroundColor Red
+                Start-Sleep -Seconds 1
+            }
+            
+            # Set all initial variables to $NULL
+            $tempFarCry2Folder = $NULL
+            $tempSandboxFolder = $NULL
+            $tempToolsFolder   = $NULL
+            $SaveConfig        = $NULL
 
-            # Visual Formatting
-            Clear-Host
-            Banner -FunctionCheck
-            Write-host "`n [" -NoNewline ; Write-Host "options" -NoNewline -ForegroundColor Red ; Write-Host "]"
-            Write-host "`n [" -NoNewline ; Write-Host "modify" -NoNewline -ForegroundColor Red ; Write-Host "]"
+
+            while ($TRUE) {
+                
+                # Visual Formatting
+                Clear-Host
+                Banner -FunctionCheck
+
+                Write-Host "`n Function List:" -ForegroundColor Yellow
+                List-MenuOption -Command "options"
+                Write-Host "`n`n Select Option:" -ForegroundColor Yellow
+                List-MenuOption -Command "modify"
 
 
-            # Start User Input
-            Write-Host "`n (Press ENTER to keep current value)"
+                # Convoluted Logic to Allow for 'back' Functionality
+                if ($tempFarCry2Folder) {
+                    Write-Host "`n`n 'Far Cry 2' Directory:`n   |" -NoNewline -ForegroundColor Yellow ; $tempFarCry2Folder
+                }
+                if ($tempSandboxFolder) {
+                    Write-Host "`n 'Sandbox' Directory:`n   |" -NoNewline -ForegroundColor Yellow ; $tempSandboxFolder
+                }
+                if ($tempToolsFolder) {
+                    Write-Host "`n 'Tools' Directory:`n   |" -NoNewline -ForegroundColor Yellow ; $tempToolsFolder
+                    Write-Host "`n Save current folder configuration? (yes/no)`n   |" -NoNewLine -ForegroundColor Yellow
+                }
 
-            Write-Host "`n Input new 'Far Cry 2' directory:`n   |" -NoNewline -ForegroundColor Yellow ; $UserInput1 = Read-Host
-            Write-Host "`n Input new 'Sandbox' directory:`n   |" -NoNewline -ForegroundColor Yellow ;   $UserInput2 = Read-Host
-            Write-Host "`n Input new 'Tools' directory:`n   |" -NoNewline -ForegroundColor Yellow ;     $UserInput3 = Read-Host
+                # Save settings and exit
+                if (($SaveConfig -eq "yes") -or ($SaveConfig -eq "y")) { $SaveConfig ; break }
+                elseif (($SaveConfig -eq "no") -or ($SaveConfig -eq "n")) {
 
-            if ($UserInput1 -eq "") { $UserInput1 = $script:FarCry2Folder }
-            if ($UserInput2 -eq "") { $UserInput2 = $script:SandboxFolder }
-            if ($UserInput3 -eq "") { $UserInput3 = $script:ToolsFolder }
+                    $tempFarCry2Folder = $NULL
+                    $tempSandboxFolder = $NULL
+                    $tempToolsFolder   = $NULL
+                    $SaveConfig        = $NULL
+                    continue
+                }
+                # End Convoluted Logic
+                
+                # User Input
+                if (!$tempFarCry2Folder) {
+                    
+                    Write-Host "`n`n 'Far Cry 2' Directory:`n   |" -NoNewline -ForegroundColor Yellow ; $tempFarCry2Folder = Read-Host
+
+                    if ($tempFarCry2Folder -eq 'EXIT') { $script:MiniMenu = $FALSE ; $script:MainMenu = $FALSE ; return }
+                    elseif ($tempFarCry2Folder -eq 'BACK') { return }
+                    elseif ( !(Test-Path -LiteralPath $tempFarCry2Folder) ) { Missing-Directory ; $tempFarCry2Folder = $NULL }
+                    else { continue }
+                }
+                elseif (!$tempSandboxFolder) {
+                    
+                    Write-Host "`n 'Sandbox' Directory:`n   |" -NoNewline -ForegroundColor Yellow ; $tempSandboxFolder = Read-Host
+
+                    if ($tempSandboxFolder -eq 'EXIT') { $script:MiniMenu = $FALSE ; $script:MainMenu = $FALSE ; return }
+                    elseif ($tempSandboxFolder -eq 'BACK') { 
+                        $tempFarCry2Folder = $NULL
+                        $tempSandboxFolder = $NULL
+                        continue
+                    }
+                    elseif ( !(Test-Path -LiteralPath $tempSandboxFolder) ) { Missing-Directory ; $tempSandboxFolder = $NULL }
+                    else { continue }
+                }
+                elseif (!$tempToolsFolder) {
+                    
+                    Write-Host "`n 'Tools' Directory:`n   |" -NoNewline -ForegroundColor Yellow ; $tempToolsFolder   = Read-Host
+
+                    if ($tempToolsFolder -eq 'EXIT') { $script:MiniMenu = $FALSE ; $script:MainMenu = $FALSE ; return }
+                    elseif ($tempToolsFolder -eq 'BACK') {
+                        $tempSandboxFolder = $NULL
+                        $tempToolsFolder   = $NULL
+                        continue
+                    }
+                    elseif ( !(Test-Path -LiteralPath $tempToolsFolder) ) { Missing-Directory ; $tempToolsFolder = $NULL }
+                    else { continue }
+                }
+                elseif (!$SaveConfig) {
+
+                    $SaveConfig = Read-Host
+
+                    if (($SaveConfig -eq "yes") -or ($SaveConfig -eq "y") -or ($SaveConfig -eq "no") -or ($SaveConfig -eq "n")) { continue }
+                    elseif ($SaveConfig -eq "EXIT") { $script:MiniMenu = $FALSE ; $script:MainMenu = $FALSE ; return }
+                    elseif ($SaveConfig -eq "BACK") {
+                        $tempToolsFolder = $NULL
+                        $SaveConfig      = $NULL
+                        continue
+                    }
+                    else { Generic-Error ; $SaveConfig = $NULL }
+                }
+            }
+
 
             # Modify Directory Values and Replace Script (Set-Content used for Proper .ps1 Encoding)
-            $BaseFile = Get-Content -Literalpath "$PSScriptRoot\FC2.Schteve.ps1"
+            $SchteveFilename = $MyInvocation.PSCommandPath
+            $BaseFile = Get-Content -Literalpath $SchteveFilename
 
-            $FC2Line     = $BaseFile[45]
-            $SandboxLine = $BaseFile[46]
-            $ToolsLine   = $BaseFile[47]
+            [string]$FC2Line      = ($BaseFile | Select-String "<#RegexTag1#>")[0]
+            [string]$SandboxLine  = ($BaseFile | Select-String "<#RegexTag2#>")[0]
+            [string]$ToolsLine    = ($BaseFile | Select-String "<#RegexTag3#>")[0]
 
-            $FixedFC2Line     = $FC2Line.Replace("$script:FarCry2Folder","$UserInput1")
-            $FixedSandboxLine = $SandboxLine.Replace("$script:SandboxFolder","$UserInput2")
-            $FixedToolsLine   = $ToolsLine.Replace("$script:ToolsFolder","$UserInput3")
+            $FixedFC2Line         = $FC2Line.Replace($script:FarCry2Folder,$tempFarCry2Folder)
+            $FixedSandboxLine     = $SandboxLine.Replace($script:SandboxFolder,$tempSandboxFolder)
+            $FixedToolsLine       = $ToolsLine.Replace($script:ToolsFolder,$tempToolsFolder)
 
-            $FinalContent = $BaseFile.Replace($FC2Line,$FixedFC2Line).Replace($SandboxLine,$FixedSandboxLine).Replace($ToolsLine,$FixedToolsLine)
+            $FinalContent         = $BaseFile.Replace($FC2Line,$FixedFC2Line).Replace($SandboxLine,$FixedSandboxLine).Replace($ToolsLine,$FixedToolsLine)
 
 
             # (ADDED CORE SUPPORT)
-            if ($PSEdition -eq 'Core') { Set-Content -Encoding UTF8BOM -LiteralPath "$PSScriptRoot\FC2.Schteve.ps1" -Value $FinalContent }
-            else { Set-Content -Encoding UTF8 -LiteralPath "$PSScriptRoot\FC2.Schteve.ps1" -Value $FinalContent }
+            if ($PSEdition -eq 'Core') { Set-Content -Encoding UTF8BOM -LiteralPath $SchteveFilename -Value $FinalContent }
+            else { Set-Content -Encoding UTF8 -LiteralPath $SchteveFilename -Value $FinalContent }
 
 
             # Replace Directory Variables so Reloading isn't Required
-            $script:FarCry2Folder = $UserInput1
-            $script:SandboxFolder = $UserInput2
-            $script:ToolsFolder   = $UserInput3
+            $script:FarCry2Folder = $tempFarCry2Folder
+            $script:SandboxFolder = $tempSandboxFolder
+            $script:ToolsFolder   = $tempToolsFolder
+
 
             # Recreate Derivative Variables
             $script:FarCry2exe    = "$script:FarCry2Folder\bin\FarCry2.exe"
@@ -650,7 +783,7 @@
         function Create-Folders {
             
             # Directory Validation
-            if ( !($script:InvalidDerivs2[0]) -and !($script:InvalidDerivs2[1]) -and !($script:InvalidDerivs2[2]) -and !($script:InvalidDerivs2[0]) ) { 
+            if ( !($script:InvalidDerivs2[0]) -and !($script:InvalidDerivs2[1]) -and !($script:InvalidDerivs2[2]) -and !($script:InvalidDerivs2[3]) ) { 
                 Write-Host "`n   All sandbox directories found! Aborting." -ForegroundColor Red
                 Start-Sleep -Seconds 2
                 break
@@ -660,52 +793,82 @@
             # Visual Formatting
             Clear-Host
             Banner -FunctionCheck
-            Write-host "`n [" -NoNewline ; Write-Host "options" -NoNewline -ForegroundColor Red ; Write-Host "]"
-            Write-host "`n [" -NoNewline ; Write-Host "init" -NoNewline -ForegroundColor Red ; Write-Host "]"
+
+            Write-Host "`n Function List:" -ForegroundColor Yellow
+            List-MenuOption -Command "options"
+
+            Write-Host "`n`n Select Option:" -ForegroundColor Yellow
+            List-MenuOption -Command "init"
 
 
             # Creating Sandbox Directories
-            Write-Host "`n   [CREATING FOLDERS...]" -ForegroundColor Yellow
+            Write-Host "`n`n   [CREATING FOLDERS...]" -ForegroundColor Yellow
 
-            if ($script:InvalidDerivs2[0]) { New-Item -ItemType Directory $script:UnpackOutput -Force | Out-Null }
-            Write-Host "   - " -NoNewline -ForegroundColor Yellow ; ($script:UnpackOutput.Replace("$script:SandboxFolder\","")).ToUpper()
+            
+            $script:UnpackOutput   = "$script:SandboxFolder\[] Raw Files"
+            $script:XbtTextures    = "$script:SandboxFolder\[] Texture Conversion\XBT"
+            $script:DdsTextures    = "$script:SandboxFolder\[] Texture Conversion\DDS"
+            $script:XmlDecoding    = "$script:SandboxFolder\[] XML Decoding"
+            $script:PatchUnpack    = "$script:SandboxFolder\patch_unpack"
 
-            if ($script:InvalidDerivs2[1]) { New-Item -ItemType Directory $script:XbtTextures -Force | Out-Null }
-            Write-Host "   - " -NoNewline -ForegroundColor Yellow ; ($script:XbtTextures.Replace("$script:SandboxFolder\","")).ToUpper()
 
-            if ($script:InvalidDerivs2[2]) { New-Item -ItemType Directory $script:DdsTextures -Force | Out-Null }
-            Write-Host "   - " -NoNewline -ForegroundColor Yellow ; ($script:DdsTextures.Replace("$script:SandboxFolder\","")).ToUpper()
+            if ($script:InvalidDerivs2[0]) { 
+                New-Item -ItemType Directory $script:UnpackOutput -Force | Out-Null
+                Write-Host "   - " -NoNewline -ForegroundColor Yellow ; ("[] Raw Files").ToUpper()
+            }
+            else { Write-Host "   - " -NoNewline -ForegroundColor Yellow ; Write-Host ("[] Raw Files").ToUpper() -ForegroundColor Red }
 
-            if ($script:InvalidDerivs2[3]) { New-Item -ItemType Directory $script:XmlDecoding -Force | Out-Null }
-            Write-Host "   - " -NoNewline -ForegroundColor Yellow ; ($script:XmlDecoding.Replace("$script:SandboxFolder\","")).ToUpper()
+
+            if ($script:InvalidDerivs2[1]) {
+                New-Item -ItemType Directory $script:XbtTextures -Force | Out-Null
+                Write-Host "   - " -NoNewline -ForegroundColor Yellow ; ("[] Texture Conversion\XBT").ToUpper()
+             }
+             else { Write-Host "   - " -NoNewline -ForegroundColor Yellow ; Write-Host ("[] Texture Conversion\XBT").ToUpper() -ForegroundColor Red }
+
+
+            if ($script:InvalidDerivs2[2]) {
+                New-Item -ItemType Directory $script:DdsTextures -Force | Out-Null
+                Write-Host "   - " -NoNewline -ForegroundColor Yellow ; ("[] Texture Conversion\DDS").ToUpper()
+            }
+            else { Write-Host "   - " -NoNewline -ForegroundColor Yellow ; Write-Host ("[] Texture Conversion\DDS").ToUpper() -ForegroundColor Red }
+
+
+            if ($script:InvalidDerivs2[3]) {
+                New-Item -ItemType Directory $script:XmlDecoding -Force | Out-Null
+                Write-Host "   - " -NoNewline -ForegroundColor Yellow ; ("[] XML Decoding").ToUpper()
+            }
+            else { Write-Host "   - " -NoNewline -ForegroundColor Yellow ; Write-Host ("[] XML Decoding").ToUpper() -ForegroundColor Red }
             Start-Sleep -Seconds 2
+
 
             Write-Host "`n   [DONE]" -ForegroundColor Green
             Start-Sleep -Seconds 3
         }
 
 
-        $MiniMenu = $TRUE
-        while ($MiniMenu) {
+        $script:MiniMenu = $TRUE
+        while ($script:MiniMenu) {
         
             Clear-Host
             Banner -FunctionCheck
-            Write-host "`n [" -NoNewline ; Write-Host "options" -NoNewline -ForegroundColor Red ; Write-Host "]"
+
+            Write-Host "`n Function List:" -ForegroundColor Yellow
+            List-MenuOption -Command "options"
 
             Write-Host "`n`n Select Option:" -ForegroundColor Yellow
-            Write-host "   [" -NoNewline ; Write-Host "modify" -NoNewline -ForegroundColor Red ; Write-Host "]      Modify Main Directories"
-            Write-host "   [" -NoNewline ; Write-Host "init" -NoNewline -ForegroundColor Red ; Write-Host "]        Initialize Sandbox"
-            Write-host "   [" -NoNewline ; Write-Host "back" -NoNewline -ForegroundColor Red ; Write-Host "]        Back to Main Menu"
+            List-MenuOption -Command "modify" -Message "Modify Main Directories"
+            List-MenuOption -Command "init" -Message "Initialize Sandbox"
+            List-MenuOption -Command "back" -Message "Back to Main Menu"
 
+            # User Choice
             Write-Host "`n`n Selection:`n   |" -NoNewline -ForegroundColor Yellow; $ConversionInput = Read-Host
         
             switch ( $ConversionInput.ToUpper() ) {
-                
+                default  { Generic-Error  }
                 "MODIFY" { Modify-Folders }
                 "INIT"   { Create-Folders }
-                "BACK"   { $MiniMenu = $FALSE }
-                "EXIT"   { $MiniMenu = $FALSE ; $script:MainMenu = $FALSE }
-                default  { Write-Host "`n   Invalid input." -ForegroundColor Red ; Start-Sleep -Seconds 2 }
+                "BACK"   { $script:MiniMenu = $FALSE }
+                "EXIT"   { $script:MiniMenu = $FALSE ; $script:MainMenu = $FALSE }
             } 
         }
     }
@@ -718,6 +881,7 @@
         $NULL = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
     }
 
+
     # Main Menu System
     $script:MainMenu = $TRUE
 
@@ -726,54 +890,31 @@
         Clear-Host
         Banner
 
-        ### Visually Formatted Menu Options ###
+        # Function List
         Write-Host "`n`n Function List:" -ForegroundColor Yellow
 
-        # START
-        Write-host "   [" -NoNewline ; Write-Host "start" -NoNewline -ForegroundColor Red ; Write-Host "]       " -NoNewline
-        if ($script:InvalidDerivs1[0]) {  Write-Host "Launch 'FarCry2.exe'" -ForegroundColor Red }
-        else { Write-Host "Launch 'FarCry2.exe'" }
-
-        # UNPACK
-        Write-host "   [" -NoNewline ; Write-Host "unpack" -NoNewline -ForegroundColor Red ; Write-Host "]      " -NoNewline
-        if ($script:InvalidDerivs1[1] -or $script:InvalidDerivs2[0] -or $script:InvalidDerivs3[1]) { Write-Host "Unpack ALL Far Cry 2 '.dat'/'.fat' Files" -ForegroundColor Red }
-        else { Write-Host "Unpack ALL Far Cry 2 '.dat'/'.fat' Files" }
-
-        # PACK
-        Write-host "   [" -NoNewline ; Write-Host "pack" -NoNewline -ForegroundColor Red ; Write-Host "]        " -NoNewline
-        if ($script:InvalidDerivs1[1] -or $script:InvalidDerivs2[4] -or $script:InvalidDerivs3[0]) { Write-Host "Pack 'patch_unpack' and Move Files" -ForegroundColor Red }
-        else { Write-Host "Pack 'patch_unpack' and Move Files" }
-
-        # CONVERT
-        Write-host "   [" -NoNewline ; Write-Host "convert" -NoNewline -ForegroundColor Red ; Write-Host "]     " -NoNewline
-        if ($script:InvalidDerivs2[1] -or $script:InvalidDerivs2[2] -or $script:InvalidDerivs3[5]) { Write-Host "Convert '.xbt'/'.dds' Texture Files" -ForegroundColor Red }
-        else { Write-Host "Convert '.xbt'/'.dds' Texture Files" }
-
-        # DECODE
-        Write-host "   [" -NoNewline ; Write-Host "decode" -NoNewline -ForegroundColor Red ; Write-Host "]      " -NoNewline
-        if ($script:InvalidDerivs2[3] -or $script:InvalidDerivs3[4]) { Write-Host "Decode '.xml' Files" -ForegroundColor Red }
-        else { Write-Host "Decode '.xml' Files" }
-
-
-        Write-host "   [" -NoNewline ; Write-Host "options" -NoNewline -ForegroundColor Red ; Write-Host "]     View or Edit Directory Info"
-        Write-host "   [" -NoNewline ; Write-Host "help" -NoNewline -ForegroundColor Red ; Write-Host "]        Display More Info"
-        Write-host "   [" -NoNewline ; Write-Host "exit" -NoNewline -ForegroundColor Red ; Write-Host "]        Exit Tool"
-
+        List-MenuOption -Command "start" -Message "Launch 'FarCry2.exe'" -Dependencies @($script:InvalidDerivs1[0])
+        List-MenuOption -Command "unpack" -Message "Unpack ALL Far Cry 2 '.dat'/'.fat' Files" -Dependencies @($script:InvalidDerivs1[0],$script:InvalidDerivs2[0],$script:InvalidDerivs3[1])
+        List-MenuOption -Command "pack" -Message "Pack 'patch_unpack' and Move Files" -Dependencies @($script:InvalidDerivs1[1],$script:InvalidDerivs2[4],$script:InvalidDerivs3[0])
+        List-MenuOption -Command "convert" -Message "Convert '.xbt'/'.dds' Texture Files" -Dependencies @($script:InvalidDerivs2[1],$script:InvalidDerivs2[2],$script:InvalidDerivs3[5])
+        List-MenuOption -Command "decode" -Message "Decode Internal '.xml' Files" -Dependencies @($script:InvalidDerivs2[3],$script:InvalidDerivs3[4])
+        List-MenuOption -Command "options" -Message "View or Edit Directory Info"
+        List-MenuOption -Command "help" -Message "Display Get-Help Page"
+        List-MenuOption -Command "exit" -Message "Exit Tool"
         
         # User Input
         Write-Host "`n`n Selection:`n   |" -NoNewline -ForegroundColor Yellow ; $MenuInput = Read-host
 
-        switch ( $MenuInput.ToUpper() ) {
-
+        switch ( $MenuInput.ToUpper() ) {   
+            default   { Generic-Error      }
             "START"   { Start-GameInstance }
-            "UNPACK"  { Unpack-GameFiles }
-            "PACK"    { Pack-GameFiles }
+            "UNPACK"  { Unpack-GameFiles   }
+            "PACK"    { Pack-GameFiles     }
             "CONVERT" { Texture-Conversion }
-            "DECODE"  { XML-Decoding }
-            "OPTIONS" { Folder-Options }
-            "HELP"    { Display-Help }
+            "DECODE"  { XML-Decoding       }
+            "OPTIONS" { Folder-Options     }
+            "HELP"    { Display-Help       }
             "EXIT"    { $script:MainMenu = $FALSE }
-            default   { Write-Host "`n   Invalid input." -ForegroundColor Red ; Start-Sleep -Seconds 2 }
         }
     }
 
