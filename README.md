@@ -11,6 +11,8 @@ PowerShell based automation for Far Cry 2 modding.
 - Re-packing `patch_unpack` and moving the output files into the original folder Far Cry 2 directory (`Data_Win32`)
 - Launching `FarCry2.exe` from the menu.
 
+Alternative NexusMods [download link](https://www.nexusmods.com/farcry2/mods/316).
+
 # Usage
 
 Supports both PowerShell (desktop) and PowerShell Core.
@@ -29,17 +31,20 @@ Menu and directory structure are color coated:
 - **White** = Filepath exists / Menu option fully available
 - **White (with Red Asterisk)** = Base filepath exists, but at least one important derivative filepath does not.
 
-## Get-Help (PS Core)
+## First-Time Launch (PowerShell Core / Windows Terminal)
+![First-Time](https://cdn.discordapp.com/attachments/855920119292362802/931315377500225626/unknown.png)
+
+## Directories Configured & Game Unpacked (PowerShell Core / Windows Terminal)
+![Configured](https://cdn.discordapp.com/attachments/855920119292362802/931323131149316126/unknown.png)
+
+## Get-Help (PowerShell Core / Windows Terminal)
 ![Get-Help](https://cdn.discordapp.com/attachments/620986290317426698/834313313797406750/unknown.png)
 
-## Mass Unpacking (PS Desktop)
+## Mass Unpacking
 ![Unpack](https://cdn.discordapp.com/attachments/620986290317426698/834317841737580554/unknown.png)
 
-## Options (PS Desktop)
+## Options
 ![Options](https://cdn.discordapp.com/attachments/620986290317426698/834312774695256104/unknown.png)
-
-## Windows Terminal (PS Core)
-![Windows-Terminal](https://cdn.discordapp.com/attachments/620986290317426698/834311463148585006/unknown.png)
 
 # Disclaimer
 Included with this repo are fragments of tools that were not created by me -- some slightly modified, others untouched.
