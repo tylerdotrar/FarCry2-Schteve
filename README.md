@@ -31,14 +31,14 @@ Menu and directory structure are color coated:
 - **White** = Filepath exists / Menu option fully available
 - **White (with Red Asterisk)** = Base filepath exists, but at least one important derivative filepath does not.
 
-## First-Time Launch (PowerShell Core / Windows Terminal)
+## First-Time Launch (PowerShell Core/Windows Terminal)
 ![First-Time](https://cdn.discordapp.com/attachments/855920119292362802/931315377500225626/unknown.png)
 
-## Directories Configured & Game Unpacked (PowerShell Core / Windows Terminal)
+## Configured & Game Unpacked (PowerShell Core/Windows Terminal)
 ![Configured](https://cdn.discordapp.com/attachments/855920119292362802/931323131149316126/unknown.png)
 
-## Get-Help (PowerShell Core / Windows Terminal)
-![Get-Help](https://cdn.discordapp.com/attachments/620986290317426698/834313313797406750/unknown.png)
+## Get-Help (PowerShell Core/Windows Terminal)
+![Get-Help](https://cdn.discordapp.com/attachments/855920119292362802/931316369805443132/unknown.png)
 
 ## Mass Unpacking
 ![Unpack](https://cdn.discordapp.com/attachments/620986290317426698/834317841737580554/unknown.png)
